@@ -14,7 +14,7 @@ const PersonCard = ({ person }) => {
         <Card.Text>Favorite Food: {person.favoriteFood}</Card.Text>
         <div className="d-flex justify-content-between align-items-center">
           <Card.Text>Favorite Color: {person.favoriteColor}</Card.Text>
-          <Button onClick={() => setLikes(likes + 1)} variant="primary">
+          <Button onClick={() => setLikes(likes + 1)} variant="dark">
             Like ({likes})
           </Button>
         </div>
