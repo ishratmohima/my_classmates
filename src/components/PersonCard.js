@@ -7,7 +7,7 @@ const PersonCard = ({ person }) => {
 
   return (
     <Card  className="shadow-sm rounded p-8 my-1"   // Bootstrap classes for styling card
-    
+    style={{ backgroundColor: "#E5E5E5", width: "40rem", height: "9rem",  borderRadius: "12px"  }} // Customized size and background color of card
     >
       <Card.Body>
         <Card.Text>Name: {person.name}</Card.Text>
