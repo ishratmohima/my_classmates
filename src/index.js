@@ -1,5 +1,5 @@
 import React from "react";
-import ReactDOM from "react-dom/client";  // ✅ Use createRoot instead of render
+import ReactDOM from "react-dom/client";  //  Use createRoot instead of render
 import App from "./App";
 import 'bootstrap/dist/css/bootstrap.min.css';
 
