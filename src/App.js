@@ -10,6 +10,7 @@ import {
 } from "react-bootstrap";
 import PersonCard from "./components/PersonCard";
 
+
 // A list of initial classmates to display when the app starts
 const initialPeople = [
   { id: 1, name: "Meghana", favoriteFood: "Pizza", favoriteColor: "Blue" },
@@ -208,8 +209,24 @@ function App() {
   // Calculate total pages after filtering
   const totalPages = Math.ceil(filteredPeople.length / pageSize);
 
+  // Track whether dark mode is active
+const [isDarkMode, setIsDarkMode] = useState(false);
+
+// This function flips the dark mode setting
+const toggleDarkMode = () => {
+  setIsDarkMode((prev) => !prev);
+};
+
   return (
-    <Container>
+    <Container
+    className={isDarkMode ? "bg-dark text-white min-vh-100" : "bg-light min-vh-100"}
+  > 
+  {/* Added Toggle Button for shifting to Dark Mode */}
+    <div className="py-3 text-end">
+      <Button variant={isDarkMode ? "secondary" : "dark"} onClick={toggleDarkMode}>
+        {isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+      </Button>
+    </div>
       <h1 className="text-left mt-4">Student Connect</h1>
 
       {/* Form for adding a new profile */}
