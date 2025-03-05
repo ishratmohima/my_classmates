@@ -22,17 +22,17 @@ function App() {
   // Holds the entire list of profiles
   const [people, setPeople] = useState(initialPeople);
 
-  // Stores the data from the "Add Profile" form
+  // Manages the form inputs for adding a new profile
   const [formData, setFormData] = useState({
     name: "",
     favoriteFood: "",
     favoriteColor: ""
   });
 
-  // Controls whether the Edit modal is visible
+  // Controls whether the Edit Profile modal is shown
   const [showEditModal, setShowEditModal] = useState(false);
 
-  // Holds the data for whichever profile we are editing
+  // Holds the data for whichever profile we're editing
   const [editFormData, setEditFormData] = useState({
     id: null,
     name: "",
@@ -40,9 +40,13 @@ function App() {
     favoriteColor: ""
   });
 
-  // Manages pagination: current page number and how many profiles per page
+  // Pagination: which page we're on and how many rows per page
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
+
+  // Sorting & Filtering: which field to sort by, and what text to filter on
+  const [sortOption, setSortOption] = useState("none");
+  const [searchText, setSearchText] = useState("");
 
   // Updates the add-form state whenever the user types in an input
   const handleChange = (e) => {
@@ -52,20 +56,20 @@ function App() {
     });
   };
 
-  // A quick check to ensure the text has only letters and spaces
+  // Simple check to ensure the text has only letters and spaces
   const isValidText = (text) => /^[A-Za-z\s]+$/.test(text);
 
   // Adds a new profile to the list after validating the inputs
   const handleAddProfile = (e) => {
     e.preventDefault();
 
-    // Make sure the user filled out all fields
+    // Make sure all fields are filled
     if (!formData.name || !formData.favoriteFood || !formData.favoriteColor) {
       alert("Please fill out all fields.");
       return;
     }
 
-    // Validate the text fields so they don't contain numbers or special characters
+    // Validate text fields so they don't contain numbers or special chars
     if (!isValidText(formData.name)) {
       alert("Name must contain only letters and spaces.");
       return;
@@ -82,19 +86,19 @@ function App() {
     // Create a new profile object
     const newProfile = { id: people.length + 1, ...formData };
 
-    // Add it to our existing array of people
+    // Update state to include the new profile
     setPeople([...people, newProfile]);
 
     // Reset the form fields
     setFormData({ name: "", favoriteFood: "", favoriteColor: "" });
   };
 
-  // Removes a profile from the array by filtering it out
+  // Removes a profile by filtering it out
   const handleDeleteProfile = (id) => {
     setPeople(people.filter((person) => person.id !== id));
   };
 
-  // Opens the Edit modal, pre-filling the editFormData with the selected person's details
+  // Opens the Edit modal, pre-filling with the selected person's details
   const handleEditClick = (person) => {
     setEditFormData(person);
     setShowEditModal(true);
@@ -112,7 +116,7 @@ function App() {
   const handleSaveEdit = (e) => {
     e.preventDefault();
 
-    // Check if all fields are filled
+    // Make sure the user filled out all fields in the Edit form
     if (
       !editFormData.name ||
       !editFormData.favoriteFood ||
@@ -151,7 +155,7 @@ function App() {
     setShowEditModal(false);
   };
 
-  // Allows the user to change how many records they see per page
+  // Allows the user to change how many records appear on each page
   const handlePageSizeChange = (e) => {
     setPageSize(Number(e.target.value));
     setCurrentPage(1);
@@ -162,19 +166,53 @@ function App() {
     setCurrentPage(newPage);
   };
 
-  // Calculate which profiles should be shown on the current page
+  // Handle sorting changes
+  const handleSortChange = (e) => {
+    setSortOption(e.target.value);
+    setCurrentPage(1); // Reset to page 1 when changing sort
+  };
+
+  // Handle filter text changes
+  const handleFilterChange = (e) => {
+    setSearchText(e.target.value);
+    setCurrentPage(1); // Reset to page 1 when filtering
+  };
+
+  // 1) Create a copy of the array to avoid mutating the original
+  let filteredPeople = [...people];
+
+  // 2) Filtering: only show rows matching the search text in name, food, or color
+  if (searchText.trim() !== "") {
+    filteredPeople = filteredPeople.filter((person) =>
+      person.name.toLowerCase().includes(searchText.toLowerCase()) ||
+      person.favoriteFood.toLowerCase().includes(searchText.toLowerCase()) ||
+      person.favoriteColor.toLowerCase().includes(searchText.toLowerCase())
+    );
+  }
+
+  // 3) Sorting: apply alphabetical sort based on the selected option
+  if (sortOption === "name") {
+    filteredPeople.sort((a, b) => a.name.localeCompare(b.name));
+  } else if (sortOption === "favoriteFood") {
+    filteredPeople.sort((a, b) => a.favoriteFood.localeCompare(b.favoriteFood));
+  } else if (sortOption === "favoriteColor") {
+    filteredPeople.sort((a, b) => a.favoriteColor.localeCompare(b.favoriteColor));
+  }
+  // If sortOption is "none", we leave the array as-is
+
+  // 4) Pagination: figure out which slice of the array to show
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = startIndex + pageSize;
-  const currentPeople = people.slice(startIndex, endIndex);
+  const currentPeople = filteredPeople.slice(startIndex, endIndex);
 
-  // Figure out how many total pages we have
-  const totalPages = Math.ceil(people.length / pageSize);
+  // Calculate total pages after filtering
+  const totalPages = Math.ceil(filteredPeople.length / pageSize);
 
   return (
     <Container>
       <h1 className="text-left mt-4">Student Connect</h1>
 
-      {/* Form to add a new profile */}
+      {/* Form for adding a new profile */}
       <Form className="my-3" onSubmit={handleAddProfile}>
         <Row>
           <Col>
@@ -212,7 +250,7 @@ function App() {
         </Row>
       </Form>
 
-      {/* Cards for each profile */}
+      {/* Display each profile as a card */}
       <Row className="justify-content-left">
         {people.map((person) => (
           <Col key={person.id} md={6} lg={4} className="mb-3">
@@ -223,10 +261,36 @@ function App() {
 
       <h2 className="mt-4">Classmates Table View</h2>
 
-      {/* Dropdown to select how many profiles are shown per page */}
+      {/* Filtering & Sorting Controls */}
       <Row className="mb-3">
         <Col xs="auto">
-          <Form.Label className="me-2">Records per page:</Form.Label>
+          <Form.Label className="me-2"><strong>Search:</strong></Form.Label>
+        </Col>
+        <Col xs="auto">
+          <Form.Control
+            type="text"
+            placeholder="Type to filter..."
+            value={searchText}
+            onChange={handleFilterChange}
+          />
+        </Col>
+        <Col xs="auto">
+          <Form.Label className="me-2"><strong>Sort by:</strong></Form.Label>
+        </Col>
+        <Col xs="auto">
+          <Form.Select value={sortOption} onChange={handleSortChange}>
+            <option value="none">None</option>
+            <option value="name">Name</option>
+            <option value="favoriteFood">Favorite Food</option>
+            <option value="favoriteColor">Favorite Color</option>
+          </Form.Select>
+        </Col>
+      </Row>
+
+      {/* Rows-per-page dropdown */}
+      <Row className="mb-3">
+        <Col xs="auto">
+          <Form.Label className="me-2"><strong>Records per page:</strong></Form.Label>
         </Col>
         <Col xs="auto">
           <Form.Select value={pageSize} onChange={handlePageSizeChange}>
@@ -237,7 +301,7 @@ function App() {
         </Col>
       </Row>
 
-      {/* Table of the current page’s profiles */}
+      {/* Table showing the current page's filtered & sorted profiles */}
       <Table striped bordered hover>
         <thead>
           <tr>
@@ -275,41 +339,40 @@ function App() {
           {currentPeople.length === 0 && (
             <tr>
               <td colSpan="4" className="text-center">
-                No profiles found on this page.
+                No profiles found.
               </td>
             </tr>
           )}
         </tbody>
       </Table>
 
-      {/* Pagination controls */}
+      {/* Pagination controls: Previous, Next, and current page info */}
       <Row className="mb-4">
-        <Col xs="auto">
-          <Button
-            variant="secondary"
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-          >
-            Previous
-          </Button>
-        </Col>
-        <Col xs="auto" className="d-flex align-items-center">
-          <span>
-            Page {currentPage} of {totalPages || 1}
-          </span>
-        </Col>
-        <Col xs="auto">
-          <Button
-            variant="secondary"
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages || totalPages === 0}
-          >
-            Next
-          </Button>
-        </Col>
-      </Row>
+  <Col className="text-end">
+    <Button
+      variant="secondary"
+      onClick={() => handlePageChange(currentPage - 1)}
+      disabled={currentPage === 1}
+    >
+      Previous
+    </Button>
 
-      {/* Modal that appears when editing a profile */}
+    <span className="mx-3">
+      Page {currentPage} of {totalPages || 1}
+    </span>
+
+    <Button
+      variant="secondary"
+      onClick={() => handlePageChange(currentPage + 1)}
+      disabled={currentPage === totalPages || totalPages === 0}
+    >
+      Next
+    </Button>
+  </Col>
+</Row>
+
+
+      {/* Modal for editing a profile */}
       <Modal show={showEditModal} onHide={handleCancelEdit}>
         <Modal.Header closeButton>
           <Modal.Title>Edit Profile</Modal.Title>

@@ -17,7 +17,7 @@ const PersonCard = ({ person, onDelete }) => {
           <Card.Text>Favorite Color: {person.favoriteColor}</Card.Text>
           <div classname="d-flex">
             {/* Adding the Like Button*/}
-          <Button onClick={() => setLikes(likes + 1)} variant="dark" className="me-2"> 
+          <Button onClick={() => setLikes(likes + 1)} variant="secondary" className="me-2"> 
             Like ({likes})
           </Button>
           {/* Adding the Delete Button */}
